@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attention Monitoring</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        #video-lecture {
+            width: 60%;
+            height: auto;
+            border: 2px solid #333;
+            margin: 10px;
+        }
+        #camera-feed {
+            width: 30%;
+            height: auto;
+            border: 2px solid #333;
+            margin: 10px;
+        }
+        #attention-info {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .alert {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Real-Time Student Attention Monitoring</h1>
+
+    <div id="container">
+        <!-- Video Lecture -->
+        <video id="video-lecture" controls autoplay>
+            <source src="{{ url_for('static', filename='lecture.mp4') }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <!-- Live Camera Feed -->
+        <img id="camera-feed" src="{{ url_for('video_feed') }}" alt="Live Camera">
+    </div>
+
+    <!-- Attention Score & Alert -->
+    <div id="attention-info">
+        Attention Score: <span id="score">-</span>/10 <br>
+        Alert: <span id="alert" class="alert">-</span>
+    </div>
+
+    <script>
+        function updateAttention() {
+            fetch('/get_attention')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error("Error:", data.error);
+                    document.getElementById('score').innerText = "-";
+                    document.getElementById('alert').innerText = "Error in tracking";
+                    document.getElementById('alert').classList.add("alert");
+                } else {
+                    document.getElementById('score').innerText = data.attention_score;
+                    document.getElementById('alert').innerText = data.alert;
+                    if (data.attention_score < 5) {
+                        document.getElementById('alert').classList.add("alert");
+                    } else {
+                        document.getElementById('alert').classList.remove("alert");
+                    }
+                }
+            })
+            .catch(error => console.error('Fetch Error:', error));
+        }
+
+        setInterval(updateAttention, 2000); // Update every 2 seconds
+    </script>
+
+</body>
+</html>
